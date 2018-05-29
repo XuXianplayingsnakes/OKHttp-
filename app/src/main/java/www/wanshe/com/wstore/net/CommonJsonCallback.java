@@ -2,6 +2,7 @@ package www.wanshe.com.wstore.net;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -16,10 +17,11 @@ import okhttp3.Response;
 
 
 public class CommonJsonCallback implements Callback {
+    private static final String TAG = "CommonJsonCallback";
 
     //与服务器的字段的一个对应关系
-    protected final String RESULT_CODE = "ecode"; //有返回则对于http请求来说是成功的，但还有可能是业务逻辑上的错误
-    protected final int RESULT_CODE_VALUE = 0;
+    protected final String RESULT_CODE = "code"; //有返回则对于http请求来说是成功的，但还有可能是业务逻辑上的错误
+    protected final int RESULT_CODE_VALUE = 200;
     protected final String ERROR_MSG = "emsg";
     protected final String EMPTY_MSG = "";
 
@@ -63,20 +65,23 @@ public class CommonJsonCallback implements Callback {
 
     //请求成功处理
     private void handleResponse(Object responseObj) {
+        //Log.d(TAG,responseObj.toString());
         if (responseObj == null && responseObj.toString().trim().equals("")) {
             mListener.onFailure(new OkHttpException(NETWORK_ERROR, EMPTY_MSG));
             return;
         }
         try {
             JSONObject result = new JSONObject(responseObj.toString());
+            Log.d(TAG,result.toString());
             if (result.has(RESULT_CODE)) {
-                //从JSON对象中取出我们的响应码，如果为0，则是正确的响应
+                //从JSON对象中取出我们的响应码，如果为200，则是正确的响应
                 if (result.getInt(RESULT_CODE) == RESULT_CODE_VALUE) {
                     if (mClass == null) {
                         mListener.onSuccess(responseObj);
                     } else {
                         //转化为实体对象
                         Object obj = new Gson().fromJson((String) responseObj, mClass);
+                        Log.d(TAG, obj.toString());
                         if (obj != null) {
                             //表明正确的转化为实体对象
                             mListener.onSuccess(obj);
